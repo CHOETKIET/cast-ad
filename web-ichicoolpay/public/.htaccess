@@ -1,0 +1,10 @@
+Options -Indexes -MultiViews
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    RewriteRule ^api/device/config/?$ api/device/config.php [L,QSA]
+    RewriteRule ^api/device/heartbeat/?$ api/device/heartbeat.php [L,QSA]
+    RewriteRule ^api/playlist/?$ api/playlist.php [L,QSA]
+</IfModule>

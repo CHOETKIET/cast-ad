@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.CastAd" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/player_background</item>
+        <item name="android:statusBarColor">@color/player_background</item>
+        <item name="android:windowBackground">@color/player_background</item>
+    </style>
+</resources>
