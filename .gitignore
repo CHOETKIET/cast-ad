@@ -1,19 +1,30 @@
 # Gradle files
 .gradle/
 build/
+**/build/
 
 # Local configuration file (sdk path, etc)
 local.properties
+*.properties.local
+secrets.properties
+secrets.xml
 
 # Log/OS Files
 *.log
+.DS_Store
+Thumbs.db
 
 # Android Studio generated files and folders
 captures/
 .externalNativeBuild/
 .cxx/
 *.apk
+*.ap_
+*.aab
 output.json
+lint-results*.html
+lint-results*.xml
+mapping.txt
 
 # IntelliJ
 *.iml
@@ -21,13 +32,58 @@ output.json
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries/
+.idea/**/shelf/
 
 # Keystore files
 *.jks
 *.keystore
+*.p12
+*.pem
+*.key
+*.crt
+keystore.properties
+signing.properties
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
 
 # Android Profiling
 *.hprof
+
+# PHP / web app dependencies
+web-cast-ad/vendor/
+web-cast-ad/composer.phar
+
+# Web app local environment and secrets
+.env
+.env.*
+!.env.example
+*.secret
+*.secrets
+web-cast-ad/.env
+web-cast-ad/.env.*
+!web-cast-ad/.env.example
+web-cast-ad/app/config/*.local.php
+web-cast-ad/app/config/local.php
+
+# Web app runtime files
+web-cast-ad/storage/logs/*
+!web-cast-ad/storage/logs/.gitkeep
+web-cast-ad/storage/cache/
+web-cast-ad/storage/tmp/
+web-cast-ad/public/uploads/*
+!web-cast-ad/public/uploads/.htaccess
+
+# Database exports / backups
+*.sql.gz
+*.sql.zip
+*.dump
+*.bak
+*.backup
+
+# Local planning notes
+แผนงาน/

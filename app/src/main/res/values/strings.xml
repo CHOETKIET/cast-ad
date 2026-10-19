@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">iCHI-COOL Play</string>
+    <string name="app_name">Cast Ad</string>
     <string name="player_image_content_description">สื่อที่กำลังแสดงผล</string>
     <string name="player_status_initializing">กำลังเตรียม Player</string>
     <string name="settings_hotspot_content_description">พื้นที่ลับสำหรับเปิด Player Settings</string>
@@ -53,7 +53,7 @@
     <string name="settings_web_sync_enabled">เปลี่ยนเป็น Web Sync แล้ว</string>
     <string name="settings_exit_app">ปิดโปรแกรม</string>
     <string name="settings_exit_app_confirm_title">ยืนยันปิดโปรแกรม</string>
-    <string name="settings_exit_app_confirm_message">ต้องการปิดโปรแกรม iCHI-COOL Play หรือไม่?</string>
+    <string name="settings_exit_app_confirm_message">ต้องการปิดโปรแกรม Cast Ad หรือไม่?</string>
     <string name="settings_confirm">ยืนยัน</string>
     <string name="settings_saved">บันทึก Settings แล้ว</string>
     <string name="settings_device_id_required">กรุณาระบุ Device ID</string>

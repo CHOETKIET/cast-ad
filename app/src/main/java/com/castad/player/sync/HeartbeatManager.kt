@@ -61,7 +61,15 @@ class HeartbeatManager(
             appVersion = appVersion,
             currentPlaylistVersion = configStore.getCurrentPlaylistVersion(),
             lastSyncTime = configStore.getLastSyncTime(),
-            lastAppliedResyncToken = configStore.getLastAppliedResyncToken()
+            lastAppliedResyncToken = configStore.getLastAppliedResyncToken(),
+            currentPlaylistItemId = configStore.getCurrentPlaylistItemId() ?: 0,
+            currentMediaId = configStore.getCurrentMediaId() ?: 0,
+            currentMediaType = configStore.getCurrentMediaType().orEmpty(),
+            lastPlaybackTime = configStore.getLastPlaybackTime().orEmpty(),
+            lastDownloadStatus = configStore.getLastDownloadStatus().orEmpty(),
+            lastDownloadMessage = configStore.getLastDownloadMessage().orEmpty(),
+            lastDownloadTime = configStore.getLastDownloadTime().orEmpty(),
+            storageAvailableBytes = configStore.getStorageAvailableBytes()
         )
 
         try {

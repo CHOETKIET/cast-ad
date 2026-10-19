@@ -10,6 +10,7 @@ data class DeviceConfigResponse(
     val playlistId: Int? = null,
     @SerializedName("playlist_version")
     val playlistVersion: Int = 0,
+    val orientation: String? = null,
     @SerializedName("sync_interval_seconds")
     val syncIntervalSeconds: Int = 60,
     @SerializedName("heartbeat_interval_seconds")
@@ -33,7 +34,23 @@ data class HeartbeatRequest(
     @SerializedName("last_sync_time")
     val lastSyncTime: String?,
     @SerializedName("last_applied_resync_token")
-    val lastAppliedResyncToken: String? = null
+    val lastAppliedResyncToken: String? = null,
+    @SerializedName("current_playlist_item_id")
+    val currentPlaylistItemId: Int? = null,
+    @SerializedName("current_media_id")
+    val currentMediaId: Int? = null,
+    @SerializedName("current_media_type")
+    val currentMediaType: String? = null,
+    @SerializedName("last_playback_time")
+    val lastPlaybackTime: String? = null,
+    @SerializedName("last_download_status")
+    val lastDownloadStatus: String? = null,
+    @SerializedName("last_download_message")
+    val lastDownloadMessage: String? = null,
+    @SerializedName("last_download_time")
+    val lastDownloadTime: String? = null,
+    @SerializedName("storage_available_bytes")
+    val storageAvailableBytes: Long? = null
 )
 
 data class ApiStatusResponse(

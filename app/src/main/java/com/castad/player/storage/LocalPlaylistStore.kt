@@ -1,6 +1,7 @@
 package com.castad.player.storage
 
 import android.content.Context
+import android.content.res.Configuration
 import com.castad.player.R
 import com.castad.player.data.MediaType
 import com.castad.player.data.Playlist
@@ -66,7 +67,7 @@ class LocalPlaylistStore(private val context: Context) {
     }
 
     private fun createMockPlaylist(): Playlist {
-        val imageUri = "android.resource://${context.packageName}/${R.drawable.default_no_content}"
+        val imageUri = "android.resource://${context.packageName}/${fallbackImageResourceId()}"
 
         return Playlist(
             playlistId = MOCK_PLAYLIST_ID,
@@ -90,6 +91,14 @@ class LocalPlaylistStore(private val context: Context) {
             playlistVersion = playlistVersion,
             items = emptyList()
         )
+    }
+
+    private fun fallbackImageResourceId(): Int {
+        return if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            R.drawable.default_no_content_portrait
+        } else {
+            R.drawable.default_no_content
+        }
     }
 
     companion object {

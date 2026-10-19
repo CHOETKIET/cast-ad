@@ -13,12 +13,14 @@ import retrofit2.http.Query
 interface DigitalSignageApi {
     @GET("api/device/config")
     suspend fun getDeviceConfig(
-        @Query("device_id") deviceId: String
+        @Query("device_id") deviceId: String,
+        @Query("orientation") orientation: String
     ): Response<DeviceConfigResponse>
 
     @GET("api/playlist")
     suspend fun getPlaylist(
-        @Query("device_id") deviceId: String
+        @Query("device_id") deviceId: String,
+        @Query("orientation") orientation: String
     ): Response<Playlist>
 
     @POST("api/device/heartbeat")

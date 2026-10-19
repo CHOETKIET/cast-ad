@@ -2,6 +2,7 @@ package com.castad.player.ui
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -337,7 +338,7 @@ class HiddenSettingsDialog(
         return withContext(Dispatchers.IO) {
             try {
                 val api = ApiClient.create(apiBaseUrl)
-                val response = api.getDeviceConfig(deviceId)
+                val response = api.getDeviceConfig(deviceId, currentScreenOrientation())
                 val body = response.body()
                 val message = when {
                     !response.isSuccessful || body == null -> context.getString(R.string.settings_connection_failed)
@@ -359,6 +360,14 @@ class HiddenSettingsDialog(
 
     private fun statusLine(value: String): String {
         return "${context.getString(R.string.settings_last_connection_test_status)}: $value"
+    }
+
+    private fun currentScreenOrientation(): String {
+        return if (context.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            "portrait"
+        } else {
+            "landscape"
+        }
     }
 
     private fun playbackModeLabel(mode: PlaybackMode): String {

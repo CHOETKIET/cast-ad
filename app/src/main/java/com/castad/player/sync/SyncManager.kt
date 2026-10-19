@@ -19,6 +19,7 @@ class SyncManager(
     private val localPlaylistStore: LocalPlaylistStore,
     private val mediaCacheManager: MediaCacheManager,
     private val scope: CoroutineScope,
+    private val orientationProvider: () -> String = { ORIENTATION_LANDSCAPE },
     private val listener: Listener? = null
 ) {
     private var syncJob: Job? = null
@@ -69,7 +70,8 @@ class SyncManager(
             return
         }
 
-        val config = fetchDeviceConfig(api, deviceId) ?: return
+        val orientation = orientationProvider().takeIf { it == ORIENTATION_PORTRAIT } ?: ORIENTATION_LANDSCAPE
+        val config = fetchDeviceConfig(api, deviceId, orientation) ?: return
         configStore.saveLastSyncTime(TimeFormats.nowIso8601())
         configStore.saveSyncIntervalSeconds(config.syncIntervalSeconds)
         configStore.saveHeartbeatIntervalSeconds(config.heartbeatIntervalSeconds)
@@ -78,6 +80,7 @@ class SyncManager(
             && forceResyncToken != configStore.getLastAppliedResyncToken()
 
         val localVersion = configStore.getCurrentPlaylistVersion()
+        val localPlaylistId = configStore.getCurrentPlaylistId()
         if (config.playlistId == null || config.playlistVersion <= 0) {
             clearLocalContent(
                 message = if (shouldForceResync) "Force re-sync cleared content" else "No active playlist assigned",
@@ -93,12 +96,13 @@ class SyncManager(
             listener?.onSyncStatus("Force re-sync requested")
         }
 
-        if (!shouldForceResync && config.playlistVersion <= localVersion) {
+        val isSamePlaylist = config.playlistId == localPlaylistId
+        if (!shouldForceResync && isSamePlaylist && config.playlistVersion <= localVersion) {
             listener?.onSyncStatus("Playlist is up to date")
             return
         }
 
-        val playlist = fetchPlaylist(api, deviceId) ?: return
+        val playlist = fetchPlaylist(api, deviceId, orientation) ?: return
         listener?.onNewerPlaylistDetected(config, playlist)
         if (playlist.items.isEmpty()) {
             clearLocalContent(
@@ -118,6 +122,11 @@ class SyncManager(
         )
 
         val cachedPlaylist = cachePlaylist(playlist) ?: return
+        configStore.saveLastDownloadStatus(
+            status = DOWNLOAD_STATUS_SUCCESS,
+            message = "Playlist version ${cachedPlaylist.playlistVersion} downloaded",
+            downloadTime = TimeFormats.nowIso8601()
+        )
         localPlaylistStore.savePendingPlaylist(cachedPlaylist)
         val activatedPlaylist = localPlaylistStore.activatePendingPlaylist()
         if (activatedPlaylist == null) {
@@ -126,6 +135,7 @@ class SyncManager(
         }
 
         configStore.saveCurrentPlaylistVersion(activatedPlaylist.playlistVersion)
+        configStore.saveCurrentPlaylistId(activatedPlaylist.playlistId)
         configStore.saveLastSyncTime(TimeFormats.nowIso8601())
         if (shouldForceResync) {
             configStore.saveLastAppliedResyncToken(forceResyncToken)
@@ -142,10 +152,11 @@ class SyncManager(
 
     private suspend fun fetchDeviceConfig(
         api: com.castad.player.network.DigitalSignageApi,
-        deviceId: String
+        deviceId: String,
+        orientation: String
     ): DeviceConfigResponse? {
         return try {
-            val response = api.getDeviceConfig(deviceId)
+            val response = api.getDeviceConfig(deviceId, orientation)
             val body = response.body()
             if (!response.isSuccessful || body == null || !body.success) {
                 listener?.onSyncStatus(body?.message ?: "Device config request failed")
@@ -163,10 +174,11 @@ class SyncManager(
 
     private suspend fun fetchPlaylist(
         api: com.castad.player.network.DigitalSignageApi,
-        deviceId: String
+        deviceId: String,
+        orientation: String
     ): Playlist? {
         return try {
-            val response = api.getPlaylist(deviceId)
+            val response = api.getPlaylist(deviceId, orientation)
             val body = response.body()
             if (!response.isSuccessful || body == null) {
                 listener?.onSyncStatus("Playlist request failed")
@@ -188,6 +200,11 @@ class SyncManager(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
+            configStore.saveLastDownloadStatus(
+                status = DOWNLOAD_STATUS_FAILED,
+                message = error.message ?: "Media download failed",
+                downloadTime = TimeFormats.nowIso8601()
+            )
             listener?.onSyncStatus("Media download failed")
             null
         }
@@ -200,6 +217,7 @@ class SyncManager(
     ) {
         mediaCacheManager.clearCachedMedia()
         val emptyPlaylist = localPlaylistStore.clearActivePlaylist(playlistVersion)
+        configStore.saveCurrentPlaylistId(emptyPlaylist.playlistId)
         configStore.saveCurrentPlaylistVersion(playlistVersion)
         configStore.saveLastSyncTime(TimeFormats.nowIso8601())
         if (!appliedResyncToken.isNullOrBlank()) {
@@ -215,5 +233,12 @@ class SyncManager(
         fun onNewerPlaylistDetected(config: DeviceConfigResponse, playlist: Playlist)
 
         fun onPlaylistActivated(playlist: Playlist)
+    }
+
+    private companion object {
+        private const val ORIENTATION_LANDSCAPE = "landscape"
+        private const val ORIENTATION_PORTRAIT = "portrait"
+        private const val DOWNLOAD_STATUS_SUCCESS = "success"
+        private const val DOWNLOAD_STATUS_FAILED = "failed"
     }
 }

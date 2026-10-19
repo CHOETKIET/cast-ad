@@ -1,6 +1,7 @@
 package com.castad.player.player
 
 import android.net.Uri
+import android.content.res.Configuration
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -23,7 +24,8 @@ class PlayerController(
     private val imageView: ImageView,
     private val playerView: PlayerView,
     private val statusText: TextView,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val listener: Listener? = null
 ) {
     private val exoPlayer = ExoPlayer.Builder(playerView.context).build()
     private var playbackJob: Job? = null
@@ -78,6 +80,7 @@ class PlayerController(
         }
 
         val item = activePlaylist.items[currentIndex % activePlaylist.items.size]
+        listener?.onPlaylistItemStarted(activePlaylist, item)
         when (item.type) {
             MediaType.IMAGE -> playImage(item)
             MediaType.VIDEO -> playVideo(item)
@@ -155,7 +158,8 @@ class PlayerController(
         playbackJob?.cancel()
         exoPlayer.stop()
         consecutiveFailures = 0
-        imageView.setImageResource(R.drawable.default_no_content)
+        listener?.onNoPlayableContent()
+        imageView.setImageResource(fallbackImageResourceId())
         imageView.visibility = View.VISIBLE
         playerView.visibility = View.GONE
         statusText.text = message
@@ -189,6 +193,20 @@ class PlayerController(
                 Uri.fromFile(file)
             }
         }
+    }
+
+    private fun fallbackImageResourceId(): Int {
+        return if (imageView.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            R.drawable.default_no_content_portrait
+        } else {
+            R.drawable.default_no_content
+        }
+    }
+
+    interface Listener {
+        fun onPlaylistItemStarted(playlist: Playlist, item: PlaylistItem)
+
+        fun onNoPlayableContent()
     }
 
     private companion object {

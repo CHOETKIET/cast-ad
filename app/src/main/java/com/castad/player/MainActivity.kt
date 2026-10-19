@@ -2,6 +2,7 @@ package com.castad.player
 
 import android.os.Bundle
 import android.content.Intent
+import android.content.res.Configuration
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.view.View
@@ -17,7 +18,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.ui.PlayerView
 import com.castad.player.data.DeviceConfigResponse
+import com.castad.player.data.MediaType
 import com.castad.player.data.Playlist
+import com.castad.player.data.PlaylistItem
 import com.castad.player.player.PlayerController
 import com.castad.player.storage.DeviceConfigStore
 import com.castad.player.storage.DeviceConfigStore.PlaybackMode
@@ -30,7 +33,10 @@ import com.castad.player.ui.HiddenSettingsDialog
 import com.castad.player.util.TimeFormats
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity(), SyncManager.Listener, HeartbeatManager.Listener {
+class MainActivity : AppCompatActivity(),
+    SyncManager.Listener,
+    HeartbeatManager.Listener,
+    PlayerController.Listener {
     private lateinit var playerController: PlayerController
     private lateinit var deviceConfigStore: DeviceConfigStore
     private lateinit var localPlaylistStore: LocalPlaylistStore
@@ -62,12 +68,14 @@ class MainActivity : AppCompatActivity(), SyncManager.Listener, HeartbeatManager
             imageView = findViewById(R.id.imagePlayer),
             playerView = findViewById(R.id.videoPlayer),
             statusText = findViewById(R.id.statusText),
-            scope = lifecycleScope
+            scope = lifecycleScope,
+            listener = this
         )
         localPlaylistStore = LocalPlaylistStore(this)
         manualPlaylistStore = ManualPlaylistStore(this)
         mediaCacheManager = MediaCacheManager(this)
         val activePlaylist = localPlaylistStore.loadActivePlaylist()
+        deviceConfigStore.saveCurrentPlaylistId(activePlaylist.playlistId)
         deviceConfigStore.saveCurrentPlaylistVersion(activePlaylist.playlistVersion)
         playerController.start(activePlaylist)
         syncManager = SyncManager(
@@ -75,6 +83,7 @@ class MainActivity : AppCompatActivity(), SyncManager.Listener, HeartbeatManager
             localPlaylistStore = localPlaylistStore,
             mediaCacheManager = mediaCacheManager,
             scope = lifecycleScope,
+            orientationProvider = { currentScreenOrientation() },
             listener = this
         )
         syncManager.start()
@@ -86,6 +95,14 @@ class MainActivity : AppCompatActivity(), SyncManager.Listener, HeartbeatManager
         )
         heartbeatManager.start()
         setupHiddenSettingsHotspot()
+    }
+
+    private fun currentScreenOrientation(): String {
+        return if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            "portrait"
+        } else {
+            "landscape"
+        }
     }
 
     override fun onResume() {
@@ -173,6 +190,24 @@ class MainActivity : AppCompatActivity(), SyncManager.Listener, HeartbeatManager
 
     override fun onHeartbeatStatus(message: String) {
         deviceConfigStore.saveLastHeartbeatStatus(message)
+    }
+
+    override fun onPlaylistItemStarted(playlist: Playlist, item: PlaylistItem) {
+        deviceConfigStore.saveCurrentPlayback(
+            playlistId = playlist.playlistId,
+            playlistVersion = playlist.playlistVersion,
+            playlistItemId = item.id,
+            mediaId = item.mediaId,
+            mediaType = when (item.type) {
+                MediaType.IMAGE -> "image"
+                MediaType.VIDEO -> "video"
+            },
+            playbackTime = TimeFormats.nowIso8601()
+        )
+    }
+
+    override fun onNoPlayableContent() {
+        deviceConfigStore.clearCurrentPlayback()
     }
 
     private fun clearContent() {
